@@ -1,24 +1,25 @@
 \name{euclidean}
 \alias{euclidean}
 \title{
-euclidean
+euclidean method for detection of crossover points
+
 }
 \description{
-Applies the euclidean method for detection of crossover points to time series.
+Applies the euclidean method for detection of crossover points on the log-log curve.
 }
 \usage{
 euclidean(x,y,npoint)
 }
 \arguments{
-  \item{x}{x-axis time series (must be a vector).}
-  \item{y}{y-axis time series (must be a vector).}
-  \item{npoint}{Number of crossover points.}
-
+  \item{x}{Vector of the decimal logarithm of the boxes sizes.}
+  \item{y}{Vector of the decimal logarithm of the DFA calculated in each boxe.}
+  \item{npoint}{Number of crossover points calculated on the log-log curve.}
 }
 \value{
 
-\item{position}{Position of the crossover point.}
-
+\item{position}{Position of the crossover point identified by the euclidean method.}
+\item{sugestion_before}{Sugestion for the position of the second crossover point identified by the euclidean method and calculated in the area before the first crossover point.}
+\item{sugestion_after}{Sugestion for the position of the second crossover point identified by the euclidean method and calculated in the area after the first crossover point.}
 }
 \author{
 Victor Barreto Mesquita
@@ -29,23 +30,32 @@ https://en.wikipedia.org/wiki/Distance_from_a_point_to_a_line
 }
 
 \examples{
-library(DFA)
-data("data5")
-data("data6")
-x<-log10(data6)
-y<-log10(data5)
-npoint=2
+# Example with crossover point fixed in position=20.
 
-euclidean(x,y,npoint)
-
-#Example with different number of crossover
-#points and other dataset.
 library(DFA)
-part1 <- seq(1,20)
-part2 <- seq(20,1)
-y = c(part1,part2)
-x<-seq(1,40)
-plot(x,y)
+data(lrcorrelation)
+x<-lrcorrelation$`log10(boxes)`
+y<-c(lrcorrelation$`log10(DFA(alpha = 0.1))`[1:20],lrcorrelation$`log10(DFA(alpha = 0.3))`[21:40])
+plot(x,y,xlab="log10(boxes)",ylab="log10(DFA)",pch=19)
+fit<- lm(y[1:20] ~ x[1:20])
+fit2<-lm(y[21:40] ~ x[21:40])
+abline(fit,col="blue")
+abline(fit2,col="red")
 euclidean(x,y,npoint=1)
+
+# Example with crossover point fixed in position=13 and 26.
+library(DFA)
+data(lrcorrelation)
+x<-lrcorrelation$`log10(boxes)`
+y<-c(lrcorrelation$`log10(DFA(alpha = 0.2))`[1:13],lrcorrelation$`log10(DFA(alpha = 0.6))`[14:26]
+  ,lrcorrelation$`log10(DFA(alpha = 0.9))`[27:40])
+plot(x,y,xlab="log10(boxes)",ylab="log10(DFA)",pch=19)
+fit<- lm(y[1:13] ~ x[1:13])
+fit2<-lm(y[14:26] ~ x[14:26])
+fit3<-lm(y[27:40] ~ x[27:40])
+abline(fit,col="blue")
+abline(fit2,col="red")
+abline(fit3,col="brown")
+euclidean(x,y,npoint=2)
 
 }

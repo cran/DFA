@@ -1,22 +1,31 @@
 
-DFA<-function(file,m=1){
+DFA<-function(file,scale = 2^(1/8),box_size = 4,m=1){
 
   if(class(file)=="data.frame")
   {
     file <- file[,1]
   }
 
-    N<-length(file)
-    scale <- 2^(1/8);box_size<-NULL;n=1;n_aux<-0;box_size[1:8]<-c(4,5,6,7,8,9,10,11)
+  N<-length(file)
 
-    for(n in 8:N){
-      while (n_aux<round(N/4)) {
-        n_aux<-box_size[8]
-        n = n + 1
-        box_size[n]<-ceiling(scale*box_size[n-1])
-        n_aux<- box_size[n]+4
-      }
+  if(scale != "F")
+  {
+
+  box_size<-NULL;n=1;n_aux<-0;box_size[1]<-4
+
+  for(n in 1:N){
+    while (n_aux<round(N/4)) {
+      n_aux<-box_size[1]
+      n = n + 1
+      box_size[n]<-ceiling(scale*box_size[n-1])
+      n_aux<- box_size[n]+4
     }
+  }
+
+  }else{
+    box_size <- box_size
+  }
+
     ninbox2<- NULL
 
     for(j in 1:length(box_size))
@@ -25,20 +34,20 @@ DFA<-function(file,m=1){
 
     }
 
-    aux_j<-NULL;aux_j[1]<-box_size[1];Log_n<-NULL;Log_Fn<- NULL;yn_k<-NULL;y_k<-NULL
+    aux_j<-NULL;aux_j[1]<-box_size[1];Log_n<-NULL;DFA<- NULL;yn_k<-NULL;y_k<-NULL
     coef_alpha<-NULL;coef_beta<-NULL;aux_yk<-NULL;aux_coef_alpha<-NULL;aux_coef_beta<-NULL
     Results<-NULL;j=1
-
-
-    for(i in 2:(box_size[j]*ninbox2[j])){
-      y_k[1]  <-file[1] - mean(file)
-      y_k[i]  <-y_k[i-1] + file[i] - mean(file)
-    }
 
     aux_j<-numeric(box_size[j])
     aux_list <- lapply(seq_along(ninbox2), function(j){
       aux_j <- numeric(box_size[j]*ninbox2[j])
-      for(i in seq_len(box_size[j]*ninbox2[j])){
+
+      for(i in 2:(box_size[j]*ninbox2[j])){
+        y_k[1]  <-file[1] - mean(file)
+        y_k[i]  <-y_k[i-1] + file[i] - mean(file)
+      }
+
+        for(i in seq_len(box_size[j]*ninbox2[j])){
         if(i==1){
           i<-1
           aux_j[1]<- box_size[j]
@@ -64,9 +73,8 @@ DFA<-function(file,m=1){
           coef_beta [(aux_j[i-1]+1):(aux_j[i])] <-aux_coef_beta[i]
 
           yn_k[(aux_j[i-1]+1):(aux_j[i])]<-coef_alpha[(aux_j[i-1]+1):(aux_j[i])]*c((aux_j[i-1]+1):(aux_j[i])) + coef_beta[(aux_j[i-1]+1):(aux_j[i])]
-          Log_n[j] <- log10(box_size[j])
-          Log_Fn<- log10(sqrt((1/N)*sum((y_k[1:(box_size[j]*ninbox2[j])]-yn_k[1:(box_size[j]*ninbox2[j])])^2)))
-          Results<- c(round(box_size[j],digits = 0),round(Log_n[j],digits=6),round(Log_Fn,digits=6))
+          DFA<- sqrt((1/N)*sum((y_k[1:(box_size[j]*ninbox2[j])]-yn_k[1:(box_size[j]*ninbox2[j])])^2))
+          Results<- c(round(box_size[j],digits = 0),round(DFA,digits=6))
 
         }
 
@@ -81,13 +89,13 @@ DFA<-function(file,m=1){
 
     aux_list<-matrix(unlist(aux_list),nrow=length(box_size),byrow=TRUE)
 
-    colnames(aux_list)<- c("boxe","log10(boxe)","log10(DFA)")
+    colnames(aux_list)<- c("boxe","DFA")
 
-    print(list(aux_list))
+    print(list(aux_list)[[1]])
 
 }
 
-DeltaDFA<-function(file,file2,m=1){
+DeltaDFA<-function(file,file2,scale = 2^(1/8),box_size = 4,m=1){
 
   if(class(file)=="data.frame" || class(file2)=="data.frame"){
     file <- file[,1]
@@ -97,15 +105,23 @@ DeltaDFA<-function(file,file2,m=1){
   if(length(file)==length(file2)){
 
     N<-length(file)
-    scale <- 2^(1/8);box_size<-NULL;n=1;n_aux<-0;box_size[1:8]<-c(4,5,6,7,8,9,10,11)
 
-    for(n in 8:N){
+    if(scale != "F")
+    {
+
+    box_size<-NULL;n=1;n_aux<-0;box_size[1]<-4
+
+    for(n in 1:N){
       while (n_aux<round(N/4)) {
-        n_aux<-box_size[8]
+        n_aux<-box_size[1]
         n = n + 1
         box_size[n]<-ceiling(scale*box_size[n-1])
         n_aux<- box_size[n]+4
       }
+    }
+
+    }else{
+      box_size <- box_size
     }
 
     ninbox2<- NULL
@@ -124,20 +140,22 @@ DeltaDFA<-function(file,file2,m=1){
 
     j<-1
 
-    for(i in 2:(box_size[j]*ninbox2[j])){
-      y_k[1]  <-file[1] - mean(file)
-      y_k[i]  <-y_k[i-1] + file[i] - mean(file)
-      y_k2[1] <-file2[1] - mean(file2)
-      y_k2[i] <-y_k2[i-1] + file2[i]-mean(file2)
-
-    }
-
     aux_j<-numeric(box_size[j])
 
     aux_list <- lapply(seq_along(ninbox2), function(j){
       aux_j <- numeric(box_size[j]*ninbox2[j])
+
+      for(i in 2:(box_size[j]*ninbox2[j])){
+        y_k[1]  <-file[1] - mean(file)
+        y_k[i]  <-y_k[i-1] + file[i] - mean(file)
+        y_k2[1] <-file2[1] - mean(file2)
+        y_k2[i] <-y_k2[i-1] + file2[i]-mean(file2)
+
+      }
+
       for(i in seq_len(box_size[j]*ninbox2[j])){
-        if(i==1){
+
+          if(i==1){
           i<-1
 
           aux_j[1]<- box_size[j]
@@ -179,14 +197,12 @@ DeltaDFA<-function(file,file2,m=1){
           yn_k[(aux_j[i-1]+1):(aux_j[i])]<-coef_alpha[(aux_j[i-1]+1):(aux_j[i])]*c((aux_j[i-1]+1):(aux_j[i])) + coef_beta[(aux_j[i-1]+1):(aux_j[i])]
           yn_k2[(aux_j[i-1]+1):(aux_j[i])]<-coef_alpha2[(aux_j[i-1]+1):(aux_j[i])]*c((aux_j[i-1]+1):(aux_j[i])) + coef_beta2[(aux_j[i-1]+1):(aux_j[i])]
 
-          Log_n[j] <- log10(box_size[j])
-
           Log_Fn<- log10(sqrt((1/N)*sum((y_k[1:(box_size[j]*ninbox2[j])]-yn_k[1:(box_size[j]*ninbox2[j])])^2)))
           Log_Fn2<- log10(sqrt((1/N)*sum((y_k2[1:(box_size[j]*ninbox2[j])]-yn_k2[1:(box_size[j]*ninbox2[j])])^2)))
 
           DeltaDFA<- Log_Fn - Log_Fn2
 
-          Results<- c(round(box_size[j],digits = 0),round(Log_n[j],digits=6),round(DeltaDFA,digits=6))
+          Results<- c(round(box_size[j],digits = 0),round(DeltaDFA,digits=6))
 
 
         }
@@ -204,15 +220,15 @@ DeltaDFA<-function(file,file2,m=1){
 
     aux_list<-matrix(unlist(aux_list),nrow=length(box_size),byrow=TRUE)
 
-    colnames(aux_list)<- c("boxe","log10(boxe)","Deltalog")
+    colnames(aux_list)<- c("boxe","DeltaDFA")
 
-    print(list(aux_list))
+    print(list(aux_list)[[1]])
 
   }
 
 }
 
-DCCA<-function(file,file2,m=1){
+DCCA<-function(file,file2,scale = 2^(1/8),box_size = 4,m=1){
 
   if(class(file)=="data.frame" || class(file2)=="data.frame"){
     file <- file[,1]
@@ -222,17 +238,24 @@ DCCA<-function(file,file2,m=1){
   if(length(file)==length(file2)){
 
     N<-length(file)
-    scale <- 2^(1/8);box_size<-NULL;n=1;n_aux<-0;box_size[1:8]<-c(4,5,6,7,8,9,10,11)
 
-    for(n in 8:N){
+    if(scale != "F")
+    {
+
+    box_size<-NULL;n=1;n_aux<-0;box_size[1]<-4
+
+    for(n in 1:N){
       while (n_aux<round(N/4)) {
-        n_aux<-box_size[8]
+        n_aux<-box_size[1]
         n = n + 1
-        box_size[n]<-round(scale*box_size[n-1])
+        box_size[n]<-ceiling(scale*box_size[n-1])
         n_aux<- box_size[n]+4
       }
     }
 
+    }else{
+      box_size <- box_size
+    }
 
     j=1
     aux_list <- lapply(seq_along(box_size), function(j){
@@ -241,7 +264,7 @@ DCCA<-function(file,file2,m=1){
       aux_j<-NULL;aux_j<-numeric(box_size[j]);coef_alpha<-NULL;coef_beta<-NULL
       Rn_k<-NULL;Rn_k2<-NULL;coef_alpha2<-NULL;coef_beta2<-NULL;f2DCCA<- NULL
       DCCA<-NULL;Results2<-NULL;f2DFA1<-NULL;f2DFA2<-NULL;DFA1<-NULL;DFA2<-NULL
-      Log_n<-NULL;R_k<-NULL;R_k2<-NULL;aux_r<-0
+      R_k<-NULL;R_k2<-NULL;aux_r<-0
 
       aux_r[1]<-box_size[j]+1;R_k[1:aux_r[1]]<- file[1:aux_r[1]] - mean(file[1:aux_r[1]])
       R_k2[1:aux_r[1]]<- file2[1:aux_r[1]] - mean(file2[1:aux_r[1]]);intervals<-N%/%(box_size[j]+1)
@@ -299,10 +322,8 @@ DCCA<-function(file,file2,m=1){
           DFA2 <- sqrt((1/(N+box_size[j]))*sum(f2DFA2))
           DCCA <- (1/(N+box_size[j]))*sum(f2DCCA)
 
-          Log_n[j] <- log10(box_size[j])
-
           aux_Result<- c(DFA1,DFA2)
-          Results<- c(round(box_size[j],digits=0),round(Log_n[j],digits=6),round(log10(DFA1),digits=6),round(log10(DFA2),digits=6))
+          Results<- c(round(box_size[j],digits=0),round(DFA1,digits=6),round(DFA2,digits=6))
           Results2<- DCCA
 
         }
@@ -317,15 +338,15 @@ DCCA<-function(file,file2,m=1){
 
     aux_list<-matrix(unlist(aux_list),nrow=length(box_size),byrow=TRUE)
 
-    colnames(aux_list)<- c("boxe","log10(boxe)","log10(DFA)","log10(DFA2)","DCCA")
+    colnames(aux_list)<- c("boxe","DFA","DFA2","DCCA")
 
-    print(list(aux_list))
+    print(list(aux_list)[[1]])
 
   }
 
 }
 
-rhoDCCA<-function(file,file2,m=1){
+rhoDCCA<-function(file,file2,scale = 2^(1/8),box_size = 4,m=1){
 
   if(class(file)=="data.frame" || class(file2)=="data.frame"){
     file <- file[,1]
@@ -335,15 +356,23 @@ rhoDCCA<-function(file,file2,m=1){
   if(length(file)==length(file2)){
 
     N<-length(file)
-    scale <- 2^(1/8);box_size<-NULL;n=1;n_aux<-0;box_size[1:8]<-c(4,5,6,7,8,9,10,11)
 
-    for(n in 8:N){
+    if(scale != "F")
+    {
+
+    box_size<-NULL;n=1;n_aux<-0;box_size[1]<-4
+
+    for(n in 1:N){
       while (n_aux<round(N/4)) {
-        n_aux<-box_size[8]
+        n_aux<-box_size[1]
         n = n + 1
-        box_size[n]<-round(scale*box_size[n-1])
+        box_size[n]<-ceiling(scale*box_size[n-1])
         n_aux<- box_size[n]+4
       }
+    }
+
+    }else{
+      box_size <- box_size
     }
 
     j=1
@@ -353,7 +382,7 @@ rhoDCCA<-function(file,file2,m=1){
       aux_j<-NULL;aux_j<-numeric(box_size[j]);coef_alpha<-NULL;coef_beta<-NULL
       Rn_k<-NULL;Rn_k2<-NULL;coef_alpha2<-NULL;coef_beta2<-NULL;f2DCCA<- NULL
       DCCA<-NULL;Results2<-NULL;f2DFA1<-NULL;f2DFA2<-NULL;DFA1<-NULL;DFA2<-NULL
-      Log_n<-NULL;R_k<-NULL;R_k2<-NULL;aux_r<-0
+      R_k<-NULL;R_k2<-NULL;aux_r<-0
 
       aux_r[1]<-box_size[j]+1;R_k[1:aux_r[1]]<- file[1:aux_r[1]] - mean(file[1:aux_r[1]])
       R_k2[1:aux_r[1]]<- file2[1:aux_r[1]] - mean(file2[1:aux_r[1]]);intervals<-N%/%(box_size[j]+1)
@@ -411,10 +440,8 @@ rhoDCCA<-function(file,file2,m=1){
           DFA2 <- sqrt((1/(N+box_size[j]))*sum(f2DFA2))
           DCCA <- (1/(N+box_size[j]))*sum(f2DCCA)
 
-          Log_n[j] <- log10(box_size[j])
-
           aux_Result<- c(DFA1,DFA2)
-          Results<- c(round(box_size[j],digits=0),round(Log_n[j],digits=6),round(log10(DFA1),digits=6),round(log10(DFA2),digits=6))
+          Results<- c(round(box_size[j],digits=0),round(DFA1,digits=6),round(DFA2,digits=6))
           Results2<- DCCA
 
         }
@@ -429,15 +456,15 @@ rhoDCCA<-function(file,file2,m=1){
 
     aux_list<-matrix(unlist(aux_list),nrow=length(box_size),byrow=TRUE)
 
-    colnames(aux_list)<- c("boxe","log10(boxe)","log10(DFA)","log10(DFA2)","DCCA","rhoDCCA")
+    colnames(aux_list)<- c("boxe","DFA1","DFA2","DCCA","rhoDCCA")
 
-    print(list(aux_list))
+    print(list(aux_list)[[1]])
 
   }
 
 }
 
-Deltarho<-function(file,file2,file3,file4,m=1){
+Deltarho<-function(file,file2,file3,file4,scale = 2^(1/8),box_size = 4,m=1){
 
   if(class(file)=="data.frame" || class(file2)=="data.frame" || class(file3)=="data.frame"|| class(file4)=="data.frame"){
     file <- file[,1]
@@ -450,15 +477,23 @@ Deltarho<-function(file,file2,file3,file4,m=1){
   if(length(file)==length(file2) || length(file)==length(file3) ||length(file)==length(file4)){
 
     N<-length(file)
-    scale <- 2^(1/8);box_size<-NULL;n=1;n_aux<-0;box_size[1:8]<-c(4,5,6,7,8,9,10,11)
 
-    for(n in 8:N){
+    if(scale != "F")
+    {
+
+    box_size<-NULL;n=1;n_aux<-0;box_size[1]<-4
+
+    for(n in 1:N){
       while (n_aux<round(N/4)) {
-        n_aux<-box_size[8]
+        n_aux<-box_size[1]
         n = n + 1
-        box_size[n]<-round(scale*box_size[n-1])
+        box_size[n]<-ceiling(scale*box_size[n-1])
         n_aux<- box_size[n]+4
       }
+    }
+
+    }else{
+      box_size <- box_size
     }
 
     j=1
@@ -468,7 +503,7 @@ Deltarho<-function(file,file2,file3,file4,m=1){
       aux_j<-NULL;aux_j<-numeric(box_size[j]);coef_alpha<-NULL;coef_beta<-NULL
       Rn_k<-NULL;Rn_k2<-NULL;coef_alpha2<-NULL;coef_beta2<-NULL;f2DCCA<- NULL
       DCCA<-NULL;Results2<-NULL;f2DFA1<-NULL;f2DFA2<-NULL;DFA1<-NULL;DFA2<-NULL
-      Log_n<-NULL;R_k<-NULL;R_k2<-NULL;aux_r<-0
+      R_k<-NULL;R_k2<-NULL;aux_r<-0
 
       coef_alpha3<-NULL;coef_beta3<-NULL
       Rn_k3<-NULL;Rn_k4<-NULL;coef_alpha4<-NULL;coef_beta4<-NULL;f2DCCA2<- NULL
@@ -574,12 +609,9 @@ Deltarho<-function(file,file2,file3,file4,m=1){
           DCCA <- (1/(N+box_size[j]))*sum(f2DCCA)
           DCCA2 <- (1/(N+box_size[j]))*sum(f2DCCA2)
 
-
-          Log_n[j] <- log10(box_size[j])
-
           aux_Result<- c(DFA1,DFA2,DFA3,DFA4)
-          Results<- c(round(box_size[j],digits=0),round(Log_n[j],digits=6),round(log10(DFA1),digits=6),
-                      round(log10(DFA2),digits=6),round(log10(DFA3),digits=6),round(log10(DFA4),digits=6))
+          Results<- c(round(box_size[j],digits=0),round(DFA1,digits=6),
+                      round(DFA2,digits=6),round(DFA3,digits=6),round(DFA4,digits=6))
           Results2<- c(DCCA, DCCA2)
 
         }
@@ -595,10 +627,10 @@ Deltarho<-function(file,file2,file3,file4,m=1){
 
     aux_list<-matrix(unlist(aux_list),nrow=length(box_size),byrow=TRUE)
 
-    colnames(aux_list)<- c("boxe","log10(boxe)","log10(DFA)","log10(DFA2)","log10(DFA3)"
-                           ,"log10(DFA4)","DCCA","DCCA2","rhoDCCA1","rhoDCCA2","DeltaRho")
+    colnames(aux_list)<- c("boxe","DFA","DFA2","DFA3"
+                           ,"DFA4","DCCA","DCCA2","rhoDCCA1","rhoDCCA2","DeltaRho")
 
-    print(list(aux_list))
+    print(list(aux_list)[[1]])
 
   }
 
@@ -632,18 +664,18 @@ AUC<-function(x,data){
 
   })
 
-  (Final_Results<-list(position = which.max(aux_list),Area = aux_list[which.max(aux_list)]))
+  (Final_Results<-list(position = which.max(aux_list),Area = aux_list[which.max(aux_list)][[1]]))
 
 
 }
 
-secante<-function(x,y,npoint){
+secant <- function(x,y,npoint,size_fit){
 
   for(j in 1:npoint){
     if(j == 1){
 
 
-      n_4<- NULL;n_4[j]<-round(length(x)/4)
+      n_4<- NULL;n_4[j]<-size_fit
 
       xx<- NULL; xx[[j]] <- list(seq(0,x[round(length(x)/4)],length.out = n_4[j]))
 
@@ -715,37 +747,59 @@ secante<-function(x,y,npoint){
 }
 
 euclidean<-function(x,y,npoint){
+  if(npoint<=2){
+    for(j in 1:npoint){
+      if(j == 1){
 
-  for(j in 1:npoint){
-    if(j == 1){
+        distance_after<- NULL;distance_after[[j]]<- list(0);distance_after[[j]][length(x)]<-0
 
-      distance<- NULL;distance[[j]]<- list(0);distance[[j]][length(x)]<-0
+        for(i in 2:(length(x)-1))
+        {
+          distance_after[[j]][[i]] <- abs(((y[length(y)] - y[1])*x[i]-(x[length(x)]-x[1])*y[i] + x[length(x)]*y[1]-y[length(y)]*y[1]))/sqrt((y[length(y)]-y[1])**2+(x[length(x)]-x[1])**2)
+        }
 
-      for(i in 2:(length(x)-1))
-      {
-        distance[[j]][[i]] <- abs(((y[length(y)] - y[1])*x[i]-(x[length(x)]-x[1])*y[i] + x[length(x)]*y[1]-y[length(y)]*y[1]))/sqrt((y[length(y)]-y[1])**2+(x[length(x)-x[1]])**2)
+
+        position<-NULL;position[j] = which.max(distance_after[[j]])
       }
 
+      if(j > 1){
 
-      position<-NULL;position[j] = which.max(distance[[j]])
+        distance_after[[j]]<- 0;distance_after[[j]][length(x)-position[j-1]]<-0
+        distance_before<- NULL;distance_before[[j]]<- list(0)
+        distance_before[[j]]<- 0;distance_before[[j]][length(x)-position[j-1]]<-0
+
+        sugestion<-NULL;sugestion=list(0)
+
+        for(i in 2:(length(x)-1))
+        {
+
+          if(i<=(position[j-1]-1)){
+            distance_before[[j]][[i]] <- abs(((y[length(y)] - y[1])*x[i]-(x[length(x)]-x[1])*y[i] + x[length(x)]*y[1]-y[length(y)]*y[1]))/sqrt((y[length(y)]-y[1])**2+(x[length(x)]-x[1])**2)
+          }
+
+
+          if((position[j-1]+1)<=i)
+          {
+            distance_after[[j]][[i]] <- abs(((y[length(y)] - y[1])*x[i]-(x[length(x)]-x[1])*y[i] + x[length(x)]*y[1]-y[length(y)]*y[1]))/sqrt((y[length(y)]-y[1])**2+(x[length(x)]-x[1])**2)
+          }
+
+        }
+
+        sugestion[[j]] = c(sugestion_before=which.max(distance_before[[j]]),sugestion_after=which.max(distance_after[[j]]))
+
+      }
     }
-
-    if(j > 1){
-
-      distance[[j]]<- 0;distance[[j]][length(x)-position[j-1]]<-0
-
-      for(i in (position[j-1]+1):(length(x)-1)){
-        distance[[j]][[i]] <- abs(((y[length(y)] - y[1])*x[i]-(x[length(x)]-x[1])*y[position[j-1]] + x[length(x)]*y[1]-y[length(y)]*y[1]))/sqrt((y[length(y)]-y[1])**2+(x[length(x)-x[1]])**2)
-      }
-
-
-      position[j] = which.max(distance[[j]])+position[j-1]
-
+    if(npoint==2)
+    {
+      c(position=list(position)[[1]],sugestion[[2:j]])
+    }
+    else
+    {
+      c(position=list(position)[[1]])
     }
   }
-
-  (results = list(position=c(position)))
-
+  else
+  {
+    paste("This amount of crossover points requires user iterativity and specific function. More information: victormesquita40@hotmail.com ")
+  }
 }
-
-

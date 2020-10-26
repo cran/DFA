@@ -1,36 +1,39 @@
 \name{DCCA}
 \alias{DCCA}
 \title{
-DCCA
+Detrended Cross-Correlation Analysis (DCCA)
 }
 \description{
-Applies the Detrended Cross-Correlation Analysis (DCCA) to time series.
+Applies the Detrended Cross-Correlation Analysis (DCCA) to nonstationary time series.
 }
 \usage{
-DCCA(file,file2,m=1)
+DCCA(file,file2,scale = 2^(1/8),box_size = 4,m=1)
 }
 
 \arguments{
   \item{file}{
-Univariate time series (must be a vector)}
+Univariate time series (must be a vector or data frame)}
   \item{file2}{
-Univariate time series (must be a vector)}
-
-
+Univariate time series (must be a vector or data frame)}
+  \item{scale}{
+Specifies the ratio between successive box sizes (by default \code{scale = 2^(1/8)})}
+  \item{box_size}{
+Vector of box sizes (must be used in conjunction with \code{scale = "F"})
+}
 \item{m}{
-An integer of the polynomial order for the detrending (by default m=1).}
+An integer of the polynomial order for the detrending (by default \code{m=1}).}
 }
 
 \details{
-The DCCA is computed in a geometric scale.
-}
+The Detrended Cross-Correlation Analysis method (DCCA) can be computed in a geometric scale or for different choices of boxes sizes.}
 \value{
-\item{box_size}{Size of the windows computed in a geometric scale. }
-\item{Log_n}{decimal logarithmic of the box size.}
-\item{DFA1}{decimal logarithmic fluctuation function of the first time series.}
-\item{DFA2}{decimal logarithmic fluctuation function of the second time series.}
+\item{boxe}{Size \eqn{n} of the overlapping boxes. }
+\item{DFA1}{DFA of the first time series (\code{file}).}
+\item{DFA2}{DFA of the second time series  (\code{file2}).}
 \item{DCCA}{Detrended Cross-Correlation function.}
-
+}
+\note{
+The time series \code{file} and \code{file2} must have the same sample size.
 }
 \author{
 Victor Barreto Mesquita
@@ -51,24 +54,37 @@ Electr. Electron. Eng., 1 (2009), pp. 55-58
 
 }
 \examples{
+#The following examples using the database of financial time series
+#collected during the United States bear market of 2007-2009.
 \donttest{
 library(DFA)
-data("data1")
-data("data2")
-file = data1
-file2= data2
+data("NYA2008")
+data("IXIC2008")
+file = NYA2008
+file2= IXIC2008
 
-DCCA(file,file2,m=1)
+DCCA(file,file2,scale = 2^(1/8),box_size = c(4,8,16),m=1)
 }
 \donttest{
-# Example with different polynomial order.
+# Example with different polynomial fit order.
 
 library(DFA)
-data("data3")
-data("data4")
-file = data3
-file2= data4
+data("NYA2008")
+data("LSE.L2008")
+file = NYA2008
+file2= LSE.L2008
 
-DCCA(file,file2,m=2)
+DCCA(file,file2,scale = 2^(1/8),box_size = c(4,8,16),m=2)
+}
+\donttest{
+# Example using different choice of overlapping boxes sizes.
+
+library(DFA)
+data("NYA2008")
+data("IXIC2008")
+file = NYA2008
+file2= IXIC2008
+
+DCCA(file,file2,scale = "F",box_size = c(4,8,16),m=1)
 }
 }

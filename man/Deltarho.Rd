@@ -1,45 +1,49 @@
 \name{Deltarho}
 \alias{Deltarho}
 \title{
-Deltarho
+Delta Amplitude Detrended Cross-Correlation Coefficient (DeltarhoDCCA)
 }
 \description{
-Applies the Detrended Cross-Correlation Coefficient Difference (Deltarho) to time series.
+Applies the Detrended Cross-Correlation Coefficient Difference (Deltarho) to nonstationary time series.
 }
 \usage{
-Deltarho(file,file2,file3,file4,m=1)
+Deltarho(file,file2,file3,file4,scale = 2^(1/8),box_size = 4,m=1)
 }
 
 \arguments{
   \item{file}{
-Univariate time series (must be a vector)}
+Univariate time series (must be a vector or data frame)}
   \item{file2}{
-Univariate time series (must be a vector)}
+Univariate time series (must be a vector or data frame)}
   \item{file3}{
-Univariate time series (must be a vector)}
+Univariate time series (must be a vector or data frame)}
   \item{file4}{
-Univariate time series (must be a vector)}
+Univariate time series (must be a vector or data frame)}
+  \item{scale}{
+Specifies the ratio between successive box sizes (by default \code{scale = 2^(1/8)})}
+  \item{box_size}{
+Vector of box sizes (must be used in conjunction with \code{scale = "F"})
+}
 \item{m}{
-An integer of the polynomial order for the detrending (by default m=1).}
+An integer of the polynomial order for the detrending (by default \code{m=1}).}
 }
 
 \details{
-The Deltarho is computed in a geometric scale.
+The Deltarho can be computed in a geometric scale or for different choices of boxes sizes.
 }
 \value{
-\item{box_size}{Size of the windows computed in a geometric scale. }
-\item{Log_n}{decimal logarithmic of the box size.}
-\item{DFA1}{decimal logarithmic fluctuation function of the first time series.}
-\item{DFA2}{decimal logarithmic fluctuation function of the second time series.}
-\item{DFA3}{decimal logarithmic fluctuation function of the third time series.}
-\item{DFA4}{decimal logarithmic fluctuation function of the fourth time series.}
-\item{DCCA1}{Detrended Cross-Correlation function between the first and the second time series.}
-\item{DCCA2}{Detrended Cross-Correlation function between the third and the fourth time series.}
-\item{rhoDCCA1}{Detrended Cross-Correlation Coefficient function between the first and the second time series.}
-\item{rhoDCCA2}{Detrended Cross-Correlation Coefficient function between the third and the fourth time series.}
+\item{boxe}{Size \eqn{n} of the overlapping boxes. }
+\item{DFA1}{DFA of the first time series (\code{file}).}
+\item{DFA2}{DFA of the second time series  (\code{file2}).}
+\item{DFA3}{DFA of the third time series  (\code{file3}).}
+\item{DFA4}{DFA of the fourth time series  (\code{file4}).}
+\item{DCCA}{Detrended Cross-Correlation function between the first time series (\code{file}) and the second time series (\code{file2}).}
+\item{DCCA2}{Detrended Cross-Correlation function between the third time series (\code{file3}) and the fourth time series (\code{file4}).}
+\item{rhoDCCA}{Detrended Cross-Correlation Coefficient function, defined as the ratio between the \code{DCCA} and two DFA (\code{DFA1,DFA2}).}
+\item{rhoDCCA2}{Detrended Cross-Correlation Coefficient function, defined as the ratio between the \code{DCCA2} and two DFA (\code{DFA3,DFA4}).}
 }
 \note{
-The time series file,file2,file3 and file4 must have the same sample size.
+The time series \code{file},\code{file2},\code{file3} and \code{file4} must have the same sample size.
 }
 \author{
 Victor Barreto Mesquita
@@ -52,29 +56,54 @@ and brazilian blue-chips: The dcca approach. Physica A: Statistical Mechanics an
 Applications, v. 424,2015.
 }
 \examples{
+#The following examples using the database of financial time series
+#collected during the United States bear market of 2007-2009.
 \donttest{
 library(DFA)
-data("data1")
-data("data2")
-data("data3")
-data("data4")
-file = data1
-file2= data2
-file3= data3
-file4= data4
+data("NYA2008")
+data("IXIC2008")
+data("LSE.L2008")
+data("SSEC2008")
 
-Deltarho(file,file2,file3,file4,m=1)
+file = NYA2008
+file2= IXIC2008
+file3 = LSE.L2008
+file4 = SSEC2008
+
+Deltarho(file,file2,file3,file4,scale = 2^(1/8),box_size = c(4,8,16),m=1)
 }
 \donttest{
-# Example with different polynomial order.
+# Example with different polynomial fit order.
 
 library(DFA)
-file = rnorm(100)
-file2= rnorm(100)
-file3= rnorm(100)
-file4= rnorm(100)
+data("NYA2008")
+data("IXIC2008")
+data("LSE.L2008")
+data("SSEC2008")
 
-Deltarho(file,file2,file3,file4,m=4)
+file = NYA2008
+file2 = LSE.L2008
+file3= IXIC2008
+file4 = SSEC2008
+
+Deltarho(file,file2,file3,file4,scale = 2^(1/8),box_size = c(4,8,16),m=2)
+
+}
+\donttest{
+# Example using different choice of overlapping boxes sizes.
+
+library(DFA)
+data("NYA2008")
+data("IXIC2008")
+data("LSE.L2008")
+data("SSEC2008")
+
+file = NYA2008
+file2= IXIC2008
+file3 = LSE.L2008
+file4 = SSEC2008
+
+Deltarho(file,file2,file3,file4,scale = "F",box_size = c(4,8,16),m=1)
 
 }
 

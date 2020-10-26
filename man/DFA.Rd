@@ -1,33 +1,37 @@
 \name{DFA}
 \alias{DFA}
 \title{
-DFA
+Detrended Fluctuation Analysis (DFA)
 }
 \description{
-Applies the Detrended Fluctuation Analysis (DFA) to time series.
+Applies the Detrended Fluctuation Analysis (DFA) to nonstationary time series.
 }
 \usage{
-DFA(file,m=1)
+DFA(file,scale = 2^(1/8),box_size = 4,m=1)
 }
 
 \arguments{
   \item{file}{
-Univariate time series (must be a vector)}
-
+Univariate time series (must be a vector or data frame)}
+  \item{scale}{
+Specifies the ratio between successive box sizes (by default \code{scale = 2^(1/8)})}
+  \item{box_size}{
+Vector of box sizes (must be used in conjunction with \code{scale = "F"})
+}
 \item{m}{
-An integer of the polynomial order for the detrending (by default m=1).}
+An integer of the polynomial order for the detrending (by default \code{m=1}).}
 }
 
 \details{
-The DFA fluctuation is computed in a geometric scale.
+The DFA fluctuation can be computed in a geometric scale or for different choices of boxes sizes.
 }
 \value{
-\item{box_size}{Size of the windows computed in a geometric scale. }
-\item{Log_n}{decimal logarithmic of the box size.}
-\item{Log_Fn}{decimal logarithmic of the Fluctuation function.}
-
+\item{boxe}{Size \eqn{n} of the overlapping boxes. }
+\item{DFA}{Detrended Fluctuation function.}
 }
-
+\note{
+The time series \code{file} and \code{file2} must have the same sample size.
+}
 \author{
 Victor Barreto Mesquita
 }
@@ -53,18 +57,31 @@ Long-Term Storage, An Experimental Study, Constable, London (1965)
 }
 
 \examples{
+#The following examples using the database of financial time series
+#collected during the United States bear market of 2007-2009.
 \donttest{
 library(DFA)
-data("data1")
-file = data1
-DFA(file,m=1)
-}
-\donttest{
-# Example with different polynomial order.
-library(DFA)
-data("data2")
-file = data2
-DFA(file,m=3)
-}
+data("NYA2008")
+file = NYA2008
 
+DFA(file,scale = 2^(1/8),box_size = c(4,8,16),m=1)
+}
+\donttest{
+# Example with different polynomial fit order.
+
+library(DFA)
+data("LSE.L2008")
+file = LSE.L2008
+
+DFA(file,scale = 2^(1/8),box_size = c(4,8,16),m=2)
+}
+\donttest{
+# Example using different choice of overlapping boxes sizes.
+
+library(DFA)
+data("NYA2008")
+file = NYA2008
+
+DFA(file,scale = "F",box_size = c(4,8,16),m=1)
+}
 }
