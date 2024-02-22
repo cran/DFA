@@ -1,17 +1,19 @@
 Package: DFA
 Type: Package
 Title: Detrended Fluctuation Analysis
-Version: 0.9.0
-Author: Victor Barreto Mesquita[aut,cre],Paulo Canas Rodrigues[ctb], Florencio Mendes Oliveira Filho[ctb]
+Version: 1.0.0
+Author: Victor Barreto Mesquita[aut,cre],Paulo Canas Rodrigues[ctb], Florêncio Mendes Oliveira Filho[ctb], Ian Meneghel Danilevicz[ctb]. 
 Maintainer: Victor Barreto Mesquita <victormesquita40@hotmail.com>
-Description: Contains the Detrended Fluctuation Analysis (DFA), Detrended Cross-Correlation Analysis (DCCA), Detrended Cross-Correlation Coefficient (rhoDCCA), Delta Amplitude Detrended Cross-Correlation Coefficient (DeltarhoDCCA), log amplitude Detrended Fluctuation Analysis (DeltalogDFA), two DFA automatic methods for identification of crossover points and a Deltalog automatic method for identification of reference channels.
-License: GPL-3
+Description: Containing the Detrended Fluctuation Analysis (DFA), Detrended Cross-Correlation Analysis (DCCA), Detrended Cross-Correlation Coefficient (rhoDCCA), Delta Amplitude Detrended Cross-Correlation Coefficient (DeltarhoDCCA), log amplitude Detrended Fluctuation Analysis (DeltalogDFA), and the Activity Balance Index, it also includes two DFA automatic methods for identifying crossover points and a Deltalog automatic method for identifying reference channels.
+License: Apache License (== 2.0)
 Encoding: UTF-8
 LazyData: true
-Depends: R (>= 2.10)
-RoxygenNote: 7.1.0
+Depends: stats, R (>= 3.5.0)
+RoxygenNote: 7.3.1
 BugReports: https://github.com/victormesquita40/DFA/issues
 NeedsCompilation: no
-Packaged: 2020-10-25 23:54:21 UTC; Vitor
 Repository: CRAN
-Date/Publication: 2020-10-26 05:20:02 UTC
+Date: 2024-02-22
+Language: en-US
+Packaged: 2024-02-22 05:25:14 UTC; User
+Date/Publication: 2024-02-22 05:42:31 UTC

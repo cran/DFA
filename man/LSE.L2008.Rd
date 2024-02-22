@@ -19,7 +19,7 @@ during the period which the United States faced the bear market of 2007\eqn{-}20
 Yahoo Finance
 }
 \references{
-\url{https://money.com/bear-market-anniversary/}
+\url{https://www.investopedia.com/terms/b/bearmarket.asp}
 }
 \examples{
 library(DFA)

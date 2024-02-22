@@ -19,7 +19,7 @@ during the United States bear market of 2007\eqn{-}2009, considered the worst be
 Yahoo Finance
 }
 \references{
-\url{https://money.com/bear-market-anniversary/}
+\url{https://www.investopedia.com/terms/b/bearmarket.asp}
 }
 \examples{
 library(DFA)

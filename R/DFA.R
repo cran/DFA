@@ -1,105 +1,85 @@
 
-DFA<-function(file,scale = 2^(1/8),box_size = 4,m=1){
-
-  if(class(file)=="data.frame")
-  {
-    file <- file[,1]
+DFA = function (file, scale = 2^(1/8), box_size = 4, m = 1){
+  if (is.data.frame(file)) {
+    file = file[, 1]
   }
-
-  N<-length(file)
-
-  if(scale != "F")
-  {
-
-  box_size<-NULL;n=1;n_aux<-0;box_size[1]<-4
-
-  for(n in 1:N){
-    while (n_aux<round(N/4)) {
-      n_aux<-box_size[1]
-      n = n + 1
-      box_size[n]<-ceiling(scale*box_size[n-1])
-      n_aux<- box_size[n]+4
+  N = length(file)
+  if(scale != "F") {
+    box_size <- NULL
+    n = 1
+    n_aux <- 0
+    box_size[1] <- 4
+    for (n in 1:N) {
+      while (n_aux < round(N/4)) {
+        n_aux <- box_size[1]
+        n = n + 1
+        box_size[n] <- ceiling(scale * box_size[n - 1])
+        n_aux <- box_size[n] + 4
+      }
     }
   }
+  ninbox2 <- NULL
+  for (j in 1:length(box_size)) {
+    ninbox2[j] <- N%/%box_size[j]
+  }
+  aux_seq = seq_along(ninbox2)  
+  aux_length = aux_seq[length(aux_seq)]  
+  y_k = cumsum(file) - mean(file)
+  aux_mat = matrix(nrow = aux_length, ncol=2)
+  for(j in seq_along(ninbox2)){
+    aux_mat[j,] = DFA_aux(j, box_size, ninbox2, file, y_k, m, N)
+  }
+  colnames(aux_mat) <- c("box", "DFA")
+  aux_list = aux_mat
+  return(aux_list)
+}
 
+DFA_aux = function(j, box_size, ninbox2, file, y_k, m, N){
+  aux_j = numeric(box_size[j] * ninbox2[j])
+  fit = y_k
+  for(i in seq_len(box_size[j] * ninbox2[j])) {
+    if(i == 1){
+      aux_j[1] = box_size[j]
+      mod_i = stats::lm(y_k[i:aux_j[i]] ~ poly(c(i:aux_j[i]), m, raw = TRUE))
+      fit[i:(aux_j[i])] = mod_i$fitted.values
+    }
+    if(i >= 2){
+      aux_j[i] = aux_j[i - 1] + box_size[j]
+      mod_i = stats::lm(y_k[(aux_j[i - 1] + 1):(aux_j[i])] ~ poly(c((aux_j[i - 1] +1):(aux_j[i])), m, raw = TRUE))
+      fit[(aux_j[i - 1] + 1):(aux_j[i])] = mod_i$fitted.values
+    }
+    if(i >= ninbox2[j]){
+      aux_j[i] <- 0
+    }
+  }
+  DFA = sqrt((1/N) * sum((y_k[1:(box_size[j] *ninbox2[j])] - fit[1:(box_size[j] * ninbox2[j])])^2))
+  Results = c(round(box_size[j], digits = 0), DFA)
+  return(Results)
+}
+
+SSP = function(file, scale = 2^(1/8), box_size = 4, m = 1){
+  as.vector(file)
+  file = file[!is.na(file)]
+  dfa_hat = DFA(as.vector(file), scale = scale, box_size = box_size, m = m)
+  est_ols = stats::lm(log(dfa_hat[,2]) ~ log(dfa_hat[,1]))
+  alpha_hat = est_ols$coefficients[[2]]    
+  return(alpha_hat)
+} 
+
+ABI = function(x){
+  if(is.na(x)){
+    y = NA
   }else{
-    box_size <- box_size
+    y = exp(-abs(x-1)*exp(2))  
   }
-
-    ninbox2<- NULL
-
-    for(j in 1:length(box_size))
-    {
-      ninbox2[j] <- N%/%box_size[j]
-
-    }
-
-    aux_j<-NULL;aux_j[1]<-box_size[1];Log_n<-NULL;DFA<- NULL;yn_k<-NULL;y_k<-NULL
-    coef_alpha<-NULL;coef_beta<-NULL;aux_yk<-NULL;aux_coef_alpha<-NULL;aux_coef_beta<-NULL
-    Results<-NULL;j=1
-
-    aux_j<-numeric(box_size[j])
-    aux_list <- lapply(seq_along(ninbox2), function(j){
-      aux_j <- numeric(box_size[j]*ninbox2[j])
-
-      for(i in 2:(box_size[j]*ninbox2[j])){
-        y_k[1]  <-file[1] - mean(file)
-        y_k[i]  <-y_k[i-1] + file[i] - mean(file)
-      }
-
-        for(i in seq_len(box_size[j]*ninbox2[j])){
-        if(i==1){
-          i<-1
-          aux_j[1]<- box_size[j]
-
-          aux_coef_alpha[i]<-coefficients(lm(y_k[i:aux_j[i]]~poly(c(i:aux_j[i]),m,raw=TRUE)))[2]
-          aux_coef_beta[i]<-coefficients(lm(y_k[i:aux_j[i]]~poly(c(i:aux_j[i]),m,raw=TRUE)))[1]
-
-          coef_alpha[i:(aux_j[i])]<-aux_coef_alpha[i]
-          coef_beta [i:(aux_j[i])] <-aux_coef_beta[i]
-
-          yn_k[i:(aux_j[i])]<-coef_alpha[i:(aux_j[i])]*c(i:(aux_j[i])) + coef_beta[i:(aux_j[i])]
-
-        }
-
-        if(i>=2){
-
-          aux_j[i] <- aux_j[i-1]+ box_size[j]
-
-          aux_coef_alpha[i]<-coefficients(lm(y_k[(aux_j[i-1]+1):aux_j[i]]~poly(c((aux_j[i-1]+1):aux_j[i]),m,raw=TRUE)))[2]
-          aux_coef_beta[i]<-coefficients(lm(y_k[(aux_j[i-1]+1):aux_j[i]]~poly(c((aux_j[i-1]+1):aux_j[i]),m,raw=TRUE)))[1]
-
-          coef_alpha[(aux_j[i-1]+1):(aux_j[i])]<-aux_coef_alpha[i]
-          coef_beta [(aux_j[i-1]+1):(aux_j[i])] <-aux_coef_beta[i]
-
-          yn_k[(aux_j[i-1]+1):(aux_j[i])]<-coef_alpha[(aux_j[i-1]+1):(aux_j[i])]*c((aux_j[i-1]+1):(aux_j[i])) + coef_beta[(aux_j[i-1]+1):(aux_j[i])]
-          DFA<- sqrt((1/N)*sum((y_k[1:(box_size[j]*ninbox2[j])]-yn_k[1:(box_size[j]*ninbox2[j])])^2))
-          Results<- c(round(box_size[j],digits = 0),round(DFA,digits=6))
-
-        }
-
-        if(i>=ninbox2[j]){
-          aux_j[i] <- 0
-        }
-      }
-      Results
-
-    })
-
-
-    aux_list<-matrix(unlist(aux_list),nrow=length(box_size),byrow=TRUE)
-
-    colnames(aux_list)<- c("boxe","DFA")
-
-    print(list(aux_list)[[1]])
-
+  return(y)  
 }
 
 DeltaDFA<-function(file,file2,scale = 2^(1/8),box_size = 4,m=1){
 
-  if(class(file)=="data.frame" || class(file2)=="data.frame"){
-    file <- file[,1]
-    file2<- file2[,1]
+  if (inherits(file, "data.frame") || inherits(file2, "data.frame")) {
+    file <- file[, 1]
+    file2 <- file2[, 1]
   }
 
   if(length(file)==length(file2)){
@@ -230,9 +210,9 @@ DeltaDFA<-function(file,file2,scale = 2^(1/8),box_size = 4,m=1){
 
 DCCA<-function(file,file2,scale = 2^(1/8),box_size = 4,m=1){
 
-  if(class(file)=="data.frame" || class(file2)=="data.frame"){
-    file <- file[,1]
-    file2<- file2[,1]
+  if (inherits(file, "data.frame") || inherits(file2, "data.frame")) {
+    file <- file[, 1]
+    file2 <- file2[, 1]
   }
 
   if(length(file)==length(file2)){
@@ -348,9 +328,9 @@ DCCA<-function(file,file2,scale = 2^(1/8),box_size = 4,m=1){
 
 rhoDCCA<-function(file,file2,scale = 2^(1/8),box_size = 4,m=1){
 
-  if(class(file)=="data.frame" || class(file2)=="data.frame"){
-    file <- file[,1]
-    file2<- file2[,1]
+  if (inherits(file, "data.frame") || inherits(file2, "data.frame")) {
+    file <- file[, 1]
+    file2 <- file2[, 1]
   }
 
   if(length(file)==length(file2)){
@@ -466,12 +446,15 @@ rhoDCCA<-function(file,file2,scale = 2^(1/8),box_size = 4,m=1){
 
 Deltarho<-function(file,file2,file3,file4,scale = 2^(1/8),box_size = 4,m=1){
 
-  if(class(file)=="data.frame" || class(file2)=="data.frame" || class(file3)=="data.frame"|| class(file4)=="data.frame"){
-    file <- file[,1]
-    file2<- file2[,1]
-    file3<- file3[,1]
-    file4<- file4[,1]
-
+  if (inherits(file, "data.frame") || 
+      inherits(file2, "data.frame") || 
+      inherits(file3, "data.frame") || 
+      inherits(file4, "data.frame")) {
+    
+    file <- file[, 1]
+    file2 <- file2[, 1]
+    file3 <- file3[, 1]
+    file4 <- file4[, 1]
   }
 
   if(length(file)==length(file2) || length(file)==length(file3) ||length(file)==length(file4)){
